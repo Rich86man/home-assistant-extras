@@ -29,13 +29,12 @@ mode: single
 trigger:
   - platform: state
     entity_id: !input button
-    to: "on"
+      - "single"
+      - "double"
 
 action:
   - variables:
       brightness_step_pct_positive: !input brightness_step_pct
-  - variables:
-      brightness_step_pct_negative: "{{ brightness_step_pct_positive|int * -1 }}"
   - wait_for_trigger:
       - platform: state
         entity_id: !input button
@@ -51,9 +50,9 @@ action:
             sequence:
               - service: light.toggle
                 entity_id: !input light
-        - condition: state
-          entity_id: !input button
-          state: "double"
+          - condition: state
+            entity_id: !input button
+            state: "double"
             sequence:
               - service: light.turn_on
                 entity_id: !input light
