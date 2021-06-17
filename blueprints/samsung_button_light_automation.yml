@@ -1,0 +1,60 @@
+blueprint:
+  name: Single button dim switch
+  description: Switch a light on/off by pressing a button.
+    Dim it up/down by double tapping
+  domain: automation
+  input:
+    button:
+      name: Push button
+      description:
+        Entity representing a samsung push button sensor
+      selector:
+        entity:
+          domain: sensor
+    light:
+      name: Light
+      selector:
+        entity:
+          domain: light
+    double_press_brightness:
+      name: Double Press Brightness
+      description: The brightness to set the light to when double pressing the button
+      default: "130"
+      selector:
+        number:
+          min: "0"
+          max: "255"
+mode: single
+
+trigger:
+  - platform: state
+    entity_id: !input button
+    to: "on"
+
+action:
+  - variables:
+      brightness_step_pct_positive: !input brightness_step_pct
+  - variables:
+      brightness_step_pct_negative: "{{ brightness_step_pct_positive|int * -1 }}"
+  - wait_for_trigger:
+      - platform: state
+        entity_id: !input button
+        to: 
+          - "single"
+          - "double"
+  - choose:
+      - conditions:
+          # when button is pressed once
+          - condition: state
+            entity_id: !input button
+            state: "single"
+            sequence:
+              - service: light.toggle
+                entity_id: !input light
+        - condition: state
+          entity_id: !input button
+          state: "double"
+            sequence:
+              - service: light.turn_on
+                entity_id: !input light
+                brightness: !input double_press_brightness
